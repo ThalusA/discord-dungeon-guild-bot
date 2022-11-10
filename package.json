@@ -6,7 +6,6 @@
   "author": "ThalusA <15985204+ThalusA@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "prestart": "tsc",
     "start": "node dist/index.js",
     "build": "tsc",
     "lint": "eslint . --ext .ts"
