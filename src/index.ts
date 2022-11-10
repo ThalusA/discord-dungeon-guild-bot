@@ -1,110 +1,146 @@
 import {
-    Collection,
-    Client,
-    REST,
-    Routes,
-    GatewayIntentBits,
-    Events,
-    ChannelType,
-    SlashCommandBuilder,
-    ChatInputCommandInteraction,
-    Message
-} from 'discord.js';
-import fs from "node:fs";
-import path from "node:path";
-import internal from "stream";
+  Collection,
+  Client,
+  REST,
+  Routes,
+  GatewayIntentBits,
+  Events
+} from 'discord.js'
+import type { InternalCommand, ExternalCommand } from './types'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import DiscordDungeonCache from './cache'
+import Sheet from './sheets'
 
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN
+const WEBSITE_URL = process.env.WEBSITE_URL
+const GOOGLE_SPREADSHEET_URL = process.env.GOOGLE_SPREADSHEET_URL
+const GOOGLE_SCRIPT_ID = process.env.GOOGLE_SCRIPT_ID
+const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID
+const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID
+const DISCORD_MISSING_MEMBERS_CHANNEL_ID = process.env.DISCORD_MISSING_MEMBERS_CHANNEL_ID
+const DISCORD_REQUEST_CHANNEL_ID = process.env.DISCORD_REQUEST_CHANNEL_ID
+const DISCORD_DUNGEONS_BOT_ID = process.env.DISCORD_DUNGEONS_BOT_ID
+const DISCORD_DUNGEONS_GUILD_ID = process.env.DISCORD_DUNGEONS_GUILD_ID
+const DISCORD_DUNGEONS_API_KEY = process.env.DISCORD_DUNGEONS_API_KEY
+const DISCORD_DUNGEONS_GRAPHQL_API_KEY = process.env.DISCORD_DUNGEONS_GRAPHQL_API_KEY
+const DISCORD_MEMBER_ROLE_ID = process.env.DISCORD_MEMBER_ROLE_ID
+const DISCORD_ELDER_ROLE_ID = process.env.DISCORD_ELDER_ROLE_ID
+const DISCORD_NO_GUILD_ROLE_ID = process.env.DISCORD_NO_GUILD_ROLE_ID
+const DISCORD_ALLIED_GUILD_ROLE_ID = process.env.DISCORD_ALLIED_GUILD_ROLE_ID
+const DISCORD_OTHER_GUILD_ROLE_ID = process.env.DISCORD_OTHER_GUILD_ROLE_ID
 
-if (DISCORD_TOKEN === undefined) {
-    throw new Error("DISCORD_TOKEN is not set");
+for (const [name, value] of Object.entries({
+  DISCORD_TOKEN,
+  WEBSITE_URL,
+  GOOGLE_SPREADSHEET_URL,
+  GOOGLE_SCRIPT_ID,
+  GOOGLE_SPREADSHEET_ID,
+  DISCORD_GUILD_ID,
+  DISCORD_MISSING_MEMBERS_CHANNEL_ID,
+  DISCORD_REQUEST_CHANNEL_ID,
+  DISCORD_DUNGEONS_BOT_ID,
+  DISCORD_DUNGEONS_GUILD_ID,
+  DISCORD_DUNGEONS_API_KEY,
+  DISCORD_DUNGEONS_GRAPHQL_API_KEY,
+  DISCORD_MEMBER_ROLE_ID,
+  DISCORD_ELDER_ROLE_ID,
+  DISCORD_NO_GUILD_ROLE_ID,
+  DISCORD_ALLIED_GUILD_ROLE_ID,
+  DISCORD_OTHER_GUILD_ROLE_ID
+})) {
+  if (value == null) {
+    throw new Error(`Missing environment variable ${name}`)
+  }
 }
 
-if (DISCORD_CLIENT_ID === undefined) {
-    throw new Error("DISCORD_CLIENT_ID is not set");
-}
+const internalCommands: Collection<string, InternalCommand> = new Collection()
+const externalCommands: Collection<string, ExternalCommand> = new Collection()
 
-interface InternalCommand {
-    data: SlashCommandBuilder;
-    execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
-}
-interface ExternalCommand {
-    data: SlashCommandBuilder;
-    execute: (interaction: { client: Client, message: Message, info: string }) => Promise<void>;
-}
+const commandsPath = path.join(__dirname, 'commands')
+const internalCommandsPath = path.join(commandsPath, 'internal')
+const externalCommandsPath = path.join(commandsPath, 'external')
 
-
-const internalCommands: Collection<string, InternalCommand> = new Collection();
-const externalCommands: Collection<string, ExternalCommand> = new Collection();
-
-const commandsPath = path.join(__dirname, "commands");
-const internalCommandsPath = path.join(commandsPath, "internal");
-const externalCommandsPath = path.join(commandsPath, "external");
-
-const internalCommandFiles = fs.readdirSync(internalCommandsPath).filter(file => file.endsWith('.js'));
-const externalCommandFiles = fs.readdirSync(externalCommandsPath).filter(file => file.endsWith('.js'));
+const internalCommandFiles = (await fs.readdir(internalCommandsPath)).filter(file => file.endsWith('.js'))
+const externalCommandFiles = (await fs.readdir(externalCommandsPath)).filter(file => file.endsWith('.js'))
 
 for (const file of internalCommandFiles) {
-    const command = await import(path.join(internalCommandsPath, file));
-    internalCommands.set(command.data.name, command);
+  const command: InternalCommand = await import(path.join(internalCommandsPath, file))
+  internalCommands.set(command.data.name, command)
 }
 for (const file of externalCommandFiles) {
-    const command = await import(path.join(externalCommandsPath, file));
-    externalCommands.set(command.data.name, command);
+  const command: ExternalCommand = await import(path.join(externalCommandsPath, file))
+  externalCommands.set(command.keyword, command)
 }
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN as string)
+const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+client.cache = new DiscordDungeonCache()
+client.sheet = new Sheet()
+
+async function updateAll (client: Client): Promise<void> {
+  await client.sheet.updateGuildInfo(client)
+  await client.cache.updateGuild()
+  await client.sheet.updateInventory(client)
+  await client.cache.updateGuildMembers()
+  await client.cache.updateDiscordMembers(client)
+  await client.sheet.updateMembers(client)
+}
 
 client.once(Events.ClientReady, async () => {
-    try {
-        console.log(`Started refreshing ${internalCommands.size} application (/) commands.`);
+  try {
+    console.log(`Started refreshing ${internalCommands.size} application (/) commands.`)
 
-        await rest.put(
-            Routes.applicationCommands(DISCORD_CLIENT_ID),
-            { body: internalCommands.map(command => command.data.toJSON()) },
-        );
-
-        console.log(`Successfully reloaded ${internalCommands.size} application (/) commands.`);
-    } catch (error) {
-        console.error(error);
+    if (client.user === null) {
+      console.error('Client user is null')
+      return
     }
-});
+
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: internalCommands.map(command => command.data.toJSON()) }
+    )
+
+    console.log(`Successfully reloaded ${internalCommands.size} application (/) commands.`)
+
+    await updateAll(client)
+    setInterval(() => { void updateAll(client) }, 900000)
+    setInterval(() => { void client.cache.updateItems() }, 86400000)
+  } catch (error) {
+    console.error(error)
+  }
+})
 
 client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand()) return
 
-    const command = internalCommands.get(interaction.commandName);
+  const command = internalCommands.get(interaction.commandName)
 
-    if (!command) {
-        console.error(`Command ${interaction.commandName} was not found.`);
-        return;
-    }
+  if (command == null) {
+    console.error(`Command ${interaction.commandName} was not found.`)
+    return
+  }
 
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
-});
+  try {
+    await command.execute(interaction)
+  } catch (error) {
+    console.error(error)
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
+  }
+})
 
 client.on(Events.MessageCreate, async message => {
-    if (message.channel.type !== ChannelType.GuildText || !message.content.startsWith("#!")) return;
-    const [commandName, info] = message.content.substring(2).split(" ", 2);
+  if (!message.author.bot || message.author.id !== DISCORD_DUNGEONS_BOT_ID) return
+  const command = externalCommands.find((_, keyword) => message.content.includes(keyword))
+  if (command == null) return
 
-    const command = externalCommands.get(commandName);
+  try {
+    await command.execute({ client, message })
+    await message.react('✅')
+  } catch (error) {
+    console.error(error)
+    await message.react('❌')
+  }
+})
 
-    if (!command) return;
-
-    try {
-        await command.execute({client, message, info});
-        await message.react('✅');
-    } catch (error) {
-        console.error(error);
-        await message.react('❌');
-    }
-});
-
-await client.login(DISCORD_TOKEN);
+await client.login(DISCORD_TOKEN)
