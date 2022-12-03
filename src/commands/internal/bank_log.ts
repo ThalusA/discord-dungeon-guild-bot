@@ -6,7 +6,7 @@ const command: InternalCommand = {
     .setName('bankLog')
     .setDescription('Show the bank spreadsheet link.'),
   execute: async (interaction: ChatInputCommandInteraction) => {
-    const embed = new EmbedBuilder().setColor(0x7F23FF).setTitle('Bank Log Links').setFields([{
+    const embed = new EmbedBuilder().setColor('#7F23FF').setTitle('Bank Log Links').setFields([{
       name: 'Website',
       value: `[Click here](${interaction.client.env.WEBSITE_URL})`
     }, {
