@@ -3,6 +3,7 @@ import { authenticate } from '@google-cloud/local-auth'
 import type { BaseExternalAccountClient, Impersonated, JWT, OAuth2Client, UserRefreshClient } from 'google-auth-library'
 import { google, script_v1, sheets_v4 } from 'googleapis'
 import { JWTInput } from 'google-auth-library/build/src/auth/credentials'
+import { Client } from 'discord.js'
 
 type JSONClient = JWT | UserRefreshClient | BaseExternalAccountClient | Impersonated
 
@@ -71,9 +72,9 @@ export default class Google extends Auth {
     return { sheets: this.sheets as sheets_v4.Sheets, script: this.script as script_v1.Script }
   }
 
-  async shiftSpreadsheetValues (sheetId: number, [startRowIndex, endRowIndex]: [number, number], [startColumnIndex, endColumnIndex]: [number, number]): Promise<void> {
+  async shiftSpreadsheetValues (client: Client, sheetId: number, [startRowIndex, endRowIndex]: [number, number], [startColumnIndex, endColumnIndex]: [number, number]): Promise<void> {
     await (await this.login()).sheets.spreadsheets.batchUpdate({
-      spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID as string,
+      spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
       requestBody: {
         requests: [{
           insertRange: {
@@ -91,16 +92,16 @@ export default class Google extends Auth {
     })
   }
 
-  async callAppsScript (): Promise<void> {
+  async callAppsScript (client: Client): Promise<void> {
     await (await this.login()).script.scripts.run({
       requestBody: { function: 'update' },
-      scriptId: process.env.GOOGLE_SCRIPT_ID as string
+      scriptId: client.env.GOOGLE_SCRIPT_ID
     })
   }
 
-  async gatherSpreadSheetValue (range: string, majorDimension: string): Promise<any[][] | null | undefined> {
+  async gatherSpreadSheetValue (client: Client, range: string, majorDimension: string): Promise<any[][] | null | undefined> {
     const response = await (await this.login()).sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID as string,
+      spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
       range,
       majorDimension,
       valueRenderOption: 'UNFORMATTED_VALUE'
@@ -108,16 +109,16 @@ export default class Google extends Auth {
     return response.data.values
   }
 
-  async updateSpreadSheetValue (range: string, majorDimension: string, values: string[][], clearRange: boolean): Promise<void> {
+  async updateSpreadSheetValue (client: Client, range: string, majorDimension: string, values: string[][], clearRange: boolean): Promise<void> {
     const { sheets } = await this.login()
     if (clearRange) {
       await sheets.spreadsheets.values.clear({
-        spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID as string,
+        spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
         range
       })
     }
     await sheets.spreadsheets.values.update({
-      spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID as string,
+      spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
       range,
       valueInputOption: 'USER_ENTERED',
       requestBody: {

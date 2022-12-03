@@ -6,11 +6,12 @@ import {
   GatewayIntentBits,
   Events
 } from 'discord.js'
-import type { InternalCommand, ExternalCommand } from './types'
+import type { InternalCommand, ExternalCommand, Environment } from './types'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import DiscordDungeonCache from './cache'
 import Sheet from './sheets'
+import { updateAll } from './commands/internal/update_all'
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const WEBSITE_URL = process.env.WEBSITE_URL
@@ -29,8 +30,9 @@ const DISCORD_ELDER_ROLE_ID = process.env.DISCORD_ELDER_ROLE_ID
 const DISCORD_NO_GUILD_ROLE_ID = process.env.DISCORD_NO_GUILD_ROLE_ID
 const DISCORD_ALLIED_GUILD_ROLE_ID = process.env.DISCORD_ALLIED_GUILD_ROLE_ID
 const DISCORD_OTHER_GUILD_ROLE_ID = process.env.DISCORD_OTHER_GUILD_ROLE_ID
+const DISCORD_IRON_ROLE_ID = process.env.DISCORD_IRON_ROLE_ID
 
-for (const [name, value] of Object.entries({
+const env = {
   DISCORD_TOKEN,
   WEBSITE_URL,
   GOOGLE_SPREADSHEET_URL,
@@ -47,12 +49,17 @@ for (const [name, value] of Object.entries({
   DISCORD_ELDER_ROLE_ID,
   DISCORD_NO_GUILD_ROLE_ID,
   DISCORD_ALLIED_GUILD_ROLE_ID,
-  DISCORD_OTHER_GUILD_ROLE_ID
-})) {
-  if (value == null) {
+  DISCORD_OTHER_GUILD_ROLE_ID,
+  DISCORD_IRON_ROLE_ID
+}
+
+for (const [name, value] of Object.entries(env)) {
+  if (value === undefined) {
     throw new Error(`Missing environment variable ${name}`)
   }
 }
+
+const environment = env as Environment
 
 const internalCommands: Collection<string, InternalCommand> = new Collection()
 const externalCommands: Collection<string, ExternalCommand> = new Collection()
@@ -77,15 +84,9 @@ const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN as string)
 const client = new Client({ intents: [GatewayIntentBits.Guilds] })
 client.cache = new DiscordDungeonCache()
 client.sheet = new Sheet()
-
-async function updateAll (client: Client): Promise<void> {
-  await client.sheet.updateGuildInfo(client)
-  await client.cache.updateGuild()
-  await client.sheet.updateInventory(client)
-  await client.cache.updateGuildMembers()
-  await client.cache.updateDiscordMembers(client)
-  await client.sheet.updateMembers(client)
-}
+client.requests = new Collection()
+client.clocks = new Collection()
+client.env = environment
 
 client.once(Events.ClientReady, async () => {
   try {
@@ -105,7 +106,7 @@ client.once(Events.ClientReady, async () => {
 
     await updateAll(client)
     setInterval(() => { void updateAll(client) }, 900000)
-    setInterval(() => { void client.cache.updateItems() }, 86400000)
+    setInterval(() => { void client.cache.updateItems(client) }, 86400000)
   } catch (error) {
     console.error(error)
   }

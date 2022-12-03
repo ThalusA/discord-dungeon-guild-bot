@@ -7,7 +7,9 @@ const command: InternalCommand = {
     .setDescription('Updates guild roles.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   execute: async (interaction: ChatInputCommandInteraction) => {
-
+    await interaction.reply('Updating items...')
+    await interaction.client.cache.updateDiscordMembers(interaction.client)
+    await interaction.reply('Done!')
   }
 }
 

@@ -8,10 +8,10 @@ const command: InternalCommand = {
   execute: async (interaction: ChatInputCommandInteraction) => {
     const embed = new EmbedBuilder().setColor(0x7F23FF).setTitle('Bank Log Links').setFields([{
       name: 'Website',
-      value: `[Click here](${process.env.WEBSITE_URL as string})`
+      value: `[Click here](${interaction.client.env.WEBSITE_URL})`
     }, {
       name: 'Spreadsheet',
-      value: `[Click here](${process.env.SPREADSHEET_URL as string})`
+      value: `[Click here](${interaction.client.env.GOOGLE_SPREADSHEET_URL})`
     }])
     if (interaction.channel === null) {
       throw new Error('You are not inside a channel')

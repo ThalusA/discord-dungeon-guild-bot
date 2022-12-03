@@ -9,7 +9,7 @@ const command: InternalCommand = {
   execute: async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply('Restarting bot...')
     await interaction.client.destroy()
-    await interaction.client.login(process.env.DISCORD_TOKEN)
+    await interaction.client.login(interaction.client.env.DISCORD_TOKEN)
   }
 }
 

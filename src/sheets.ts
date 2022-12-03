@@ -13,12 +13,12 @@ export default class Sheet extends Google {
       const amount = item.id in client.cache.guild.uinv ? client.cache.guild.uinv[item.id].toString() : '0'
       inventory.push([item.name, item.level.toString(), cost, sellablePrice, amount])
     }
-    await this.updateSpreadSheetValue('Gold Sheet!E2', 'ROWS', [[client.cache.guild.gold.toString()]], false)
-    await this.updateSpreadSheetValue('Item Sheet!I6:M', 'ROWS', inventory, true)
+    await this.updateSpreadSheetValue(client, 'Gold Sheet!E2', 'ROWS', [[client.cache.guild.gold.toString()]], false)
+    await this.updateSpreadSheetValue(client, 'Item Sheet!I6:M', 'ROWS', inventory, true)
   }
 
   async updateGuildInfo (client: Client): Promise<void> {
-    const donators = await this.gatherSpreadSheetValue('Gold Deposit Form!B2:D', 'ROWS')
+    const donators = await this.gatherSpreadSheetValue(client, 'Gold Deposit Form!B2:D', 'ROWS')
     if (donators === undefined || donators === null) return
     const donations: Donations = {}
     for (const donator of donators) {
@@ -40,8 +40,8 @@ export default class Sheet extends Google {
       donatorIds.push(donation[0])
       donatorNamesAndDonatedAmount.push([donation[1].name, donation[1].donated.toString()])
     }
-    await this.updateSpreadSheetValue('Gold Sheet!D6:D', 'ROWS', [donatorIds], true)
-    await this.updateSpreadSheetValue('Gold Sheet!A6:B', 'ROWS', donatorNamesAndDonatedAmount, true)
+    await this.updateSpreadSheetValue(client, 'Gold Sheet!D6:D', 'ROWS', [donatorIds], true)
+    await this.updateSpreadSheetValue(client, 'Gold Sheet!A6:B', 'ROWS', donatorNamesAndDonatedAmount, true)
   }
 
   async updateMembers (client: Client): Promise<void> {
@@ -53,7 +53,7 @@ export default class Sheet extends Google {
     }
     const guildMembers: Member[] = owners.concat(elders, members)
     const notInDiscordGuildMembers = guildMembers.filter(member => !client.cache.discordMembers.includes(member.id))
-    const missingMemberChannel = await client.guilds.resolve(process.env.DISCORD_GUILD_ID as string)?.channels.resolve(process.env.DISCORD_MISSING_MEMBERS_CHANNEL_ID as string)
+    const missingMemberChannel = await client.guilds.resolve(client.env.DISCORD_GUILD_ID)?.channels.resolve(client.env.DISCORD_MISSING_MEMBERS_CHANNEL_ID)
     if (missingMemberChannel !== null && missingMemberChannel !== undefined && missingMemberChannel.type === ChannelType.GuildText) {
       await missingMemberChannel.bulkDelete(100)
       for (const member of notInDiscordGuildMembers) {
@@ -65,24 +65,24 @@ export default class Sheet extends Google {
         }
       }
     }
-    await this.updateSpreadSheetValue('Members!G10:I', 'ROWS', notInDiscordGuildMembers.map(member => [member.name, member.id, member.level.toString()]), true)
-    await this.updateSpreadSheetValue('Members!F1:F', 'ROWS', [[owners.length.toString()], [elders.length.toString()], [members.length.toString()]], false)
-    await this.callAppsScript()
-    await this.updateSpreadSheetValue('Members!B10:E', 'ROWS', guildMembers.map(member => [member.name, member.id, member.level.toString(), member.gold.toString()]), true)
+    await this.updateSpreadSheetValue(client, 'Members!G10:I', 'ROWS', notInDiscordGuildMembers.map(member => [member.name, member.id, member.level.toString()]), true)
+    await this.updateSpreadSheetValue(client, 'Members!F1:F', 'ROWS', [[owners.length.toString()], [elders.length.toString()], [members.length.toString()]], false)
+    await this.callAppsScript(client)
+    await this.updateSpreadSheetValue(client, 'Members!B10:E', 'ROWS', guildMembers.map(member => [member.name, member.id, member.level.toString(), member.gold.toString()]), true)
   }
 
-  async reportFulfilledRequest (username: string, id: string, item: string, quantity: number): Promise<void> {
+  async reportRequest (client: Client, username: string, id: string, item: string, quantity: number): Promise<void> {
     if (item === 'gold') {
-      await this.shiftSpreadsheetValues(118055431, [1, 2], [0, 4])
-      await this.updateSpreadSheetValue('Gold Deposit Form!A2:D2', 'ROWS', [[
+      await this.shiftSpreadsheetValues(client, 118055431, [1, 2], [0, 4])
+      await this.updateSpreadSheetValue(client, 'Gold Deposit Form!A2:D2', 'ROWS', [[
         new Date(Date.now()).toUTCString(),
         username,
         quantity.toString(),
         id
       ]], false)
     } else {
-      await this.shiftSpreadsheetValues(1306100818, [5, 6], [1, 8])
-      await this.updateSpreadSheetValue('Item Sheet!B6:G6', 'ROWS', [[
+      await this.shiftSpreadsheetValues(client, 1306100818, [5, 6], [1, 8])
+      await this.updateSpreadSheetValue(client, 'Item Sheet!B6:G6', 'ROWS', [[
         username,
         id,
         item,
@@ -94,11 +94,11 @@ export default class Sheet extends Google {
   }
 
   async addRequest (client: Client, time: Date, username: string, itemtype: string, number: number): Promise<void> {
-    await this.shiftSpreadsheetValues(95601, [1, 2], [0, 4])
-    await this.updateSpreadSheetValue('Requests!I1', 'ROWS', [['1']], false)
-    await this.updateSpreadSheetValue('Requests!A2:D2', 'ROWS', [[time.toUTCString(), username, itemtype, number.toString()]], false)
-    await this.callAppsScript()
-    const requestChannel = await client.guilds.resolve(process.env.DISCORD_GUILD_ID as string)?.channels.resolve(process.env.DISCORD_REQUEST_CHANNEL_ID as string)
+    await this.shiftSpreadsheetValues(client, 95601, [1, 2], [0, 4])
+    await this.updateSpreadSheetValue(client, 'Requests!I1', 'ROWS', [['1']], false)
+    await this.updateSpreadSheetValue(client, 'Requests!A2:D2', 'ROWS', [[time.toUTCString(), username, itemtype, number.toString()]], false)
+    await this.callAppsScript(client)
+    const requestChannel = await client.guilds.resolve(client.env.DISCORD_GUILD_ID)?.channels.resolve(client.env.DISCORD_REQUEST_CHANNEL_ID)
     if (requestChannel !== null && requestChannel !== undefined && requestChannel.type === ChannelType.GuildText) {
       await requestChannel.send(`${username} requested ${itemtype === 'gold' ? number.toLocaleString() : number} ${itemtype} at ${time.toUTCString()}`)
     }
