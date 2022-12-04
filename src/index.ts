@@ -111,9 +111,10 @@ client.once(Events.ClientReady, async () => {
 
     console.log(`Successfully reloaded ${internalCommands.size} application (/) commands.`)
 
-    await updateAll(client)
-    setInterval(() => { void updateAll(client) }, 900000)
-    setInterval(() => { void client.cache.updateItems(client) }, 86400000)
+    updateAll(client).finally(() => {
+      setInterval(() => { void updateAll(client) }, 900000)
+      setInterval(() => { void client.cache.updateItems(client) }, 86400000)
+    })
   } catch (error) {
     console.error(error)
   }
