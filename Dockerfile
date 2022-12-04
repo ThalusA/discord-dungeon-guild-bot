@@ -2,7 +2,8 @@ FROM node:lts-alpine AS builder
 WORKDIR /app
 COPY package.json yarn.lock /app/
 RUN yarn install
-COPY src tsconfig.json .eslintrc.json /app/
+COPY tsconfig.json .eslintrc.json /app/
+COPY src /app/src
 RUN yarn build
 
 FROM node:lts-alpine AS runner
