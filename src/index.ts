@@ -11,8 +11,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import DiscordDungeonCache from './cache.js'
 import Sheet from './sheets.js'
-import { updateAll } from './commands/internal/update_all.js'
 import { fileURLToPath } from 'url'
+import { updateAll } from './utils.js'
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const WEBSITE_URL = process.env.WEBSITE_URL

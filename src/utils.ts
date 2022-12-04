@@ -57,3 +57,26 @@ export async function finishRequest (client: Client, message: Message, user: Mem
   }
   await message.react('✅')
 }
+
+export async function updateAll (client: Client): Promise<void> {
+  console.info('Executing updateAll()')
+  console.info('Executing updateGuildInfo()')
+  await client.sheet.updateGuildInfo(client)
+  console.info('Function updateGuildInfo() done')
+  console.info('Executing updateGuild()')
+  await client.cache.updateGuild(client)
+  console.info('Function updateGuild() done')
+  console.info('Executing updateInventory()')
+  await client.sheet.updateInventory(client)
+  console.info('Function updateInventory() done')
+  console.info('Executing updateGuildMembers()')
+  await client.cache.updateGuildMembers(client)
+  console.info('Function updateGuildMembers() done')
+  console.info('Executing updateDiscordMembers()')
+  await client.cache.updateDiscordMembers(client)
+  console.info('Function updateDiscordMembers() done')
+  console.info('Executing updateMembers()')
+  await client.sheet.updateMembers(client)
+  console.info('Function updateMembers() done')
+  console.info('Function updateAll() done')
+}

@@ -1,14 +1,6 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, Client } from 'discord.js'
+import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits } from 'discord.js'
 import type { InternalCommand } from '../../types.js'
-
-export async function updateAll (client: Client): Promise<void> {
-  await client.sheet.updateGuildInfo(client)
-  await client.cache.updateGuild(client)
-  await client.sheet.updateInventory(client)
-  await client.cache.updateGuildMembers(client)
-  await client.cache.updateDiscordMembers(client)
-  await client.sheet.updateMembers(client)
-}
+import { updateAll } from '../../utils.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()

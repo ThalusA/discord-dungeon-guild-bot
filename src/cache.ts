@@ -95,6 +95,7 @@ export default class DiscordDungeonCache {
   }
 
   async updateItems (client: Client): Promise<void> {
+    console.info('Executing updateItems()')
     const response = await fetch('https://api.discorddungeons.me/v3/all/items', {
       headers: { Authorization: client.env.DISCORD_DUNGEONS_API_KEY }
     })
