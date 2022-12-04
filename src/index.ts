@@ -12,6 +12,7 @@ import path from 'node:path'
 import DiscordDungeonCache from './cache.js'
 import Sheet from './sheets.js'
 import { updateAll } from './commands/internal/update_all.js'
+import { fileURLToPath } from 'url'
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const WEBSITE_URL = process.env.WEBSITE_URL
@@ -66,7 +67,8 @@ await fs.writeFile('credentials.json', environment.GOOGLE_CREDENTIALS)
 const internalCommands: Collection<string, InternalCommand> = new Collection()
 const externalCommands: Collection<string, ExternalCommand> = new Collection()
 
-const commandsPath = 'commands'
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+const commandsPath = path.join(dirname, 'commands')
 const internalCommandsPath = path.join(commandsPath, 'internal')
 const externalCommandsPath = path.join(commandsPath, 'external')
 
