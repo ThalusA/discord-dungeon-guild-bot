@@ -2,16 +2,11 @@ import { google, script_v1, sheets_v4 } from 'googleapis'
 import { Client } from 'discord.js'
 
 export default class Google {
-  logged_in: boolean
   sheets: sheets_v4.Sheets | undefined
   script: script_v1.Script | undefined
 
-  constructor () {
-    this.logged_in = false
-  }
-
   login (client: Client): { sheets: sheets_v4.Sheets, script: script_v1.Script } {
-    if (!this.logged_in) {
+    if (this.sheets === undefined || this.script === undefined) {
       this.sheets = google.sheets({
         version: 'v4',
         auth: client.env.GOOGLE_API_KEY
@@ -20,11 +15,10 @@ export default class Google {
         version: 'v1',
         auth: client.env.GOOGLE_API_KEY
       })
-      this.logged_in = true
     }
     return {
-      sheets: this.sheets as sheets_v4.Sheets,
-      script: this.script as script_v1.Script
+      sheets: this.sheets,
+      script: this.script
     }
   }
 
