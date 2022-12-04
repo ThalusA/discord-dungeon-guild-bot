@@ -1,50 +1,66 @@
 import { google, script_v1, sheets_v4 } from 'googleapis'
-import { OAuth2Client } from 'google-auth-library'
 import { Client } from 'discord.js'
-import * as http from 'http'
-import * as url from 'url'
+import path from 'node:path'
+import fs from 'node:fs/promises'
+import { authenticate } from '@google-cloud/local-auth'
+import type { BaseExternalAccountClient, Impersonated, JWT, OAuth2Client, UserRefreshClient, JWTInput } from 'google-auth-library'
+import { constants } from 'fs'
 
-export default class Google {
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+const DEPLOYED = await fs.access('/credentials', constants.F_OK).then(() => true).catch(() => false)
+const TOKEN_PATH = path.join(DEPLOYED ? '/credentials' : process.cwd(), 'token.json')
+const CREDENTIALS_PATH = path.join(DEPLOYED ? '/credentials' : process.cwd(), 'credentials.json')
+
+type JSONClient = JWT | UserRefreshClient | BaseExternalAccountClient | Impersonated
+
+class Auth {
+  async loadSavedCredentialsIfExist (): Promise<JSONClient | null> {
+    try {
+      const content = (await fs.readFile(TOKEN_PATH)).toString()
+      const credentials = JSON.parse(content)
+      return google.auth.fromJSON(credentials)
+    } catch (err) {
+      return null
+    }
+  }
+
+  async saveCredentials (client: OAuth2Client): Promise<void> {
+    const content = (await fs.readFile(CREDENTIALS_PATH)).toString()
+    const keys: { installed?: JWTInput, web?: JWTInput } = JSON.parse(content)
+    const key = keys.installed ?? keys.web
+    if (key === undefined) {
+      throw new Error("Couldn't find key in credentials file.")
+    }
+    const payload = JSON.stringify({
+      type: 'authorized_user',
+      client_id: key.client_id,
+      client_secret: key.client_secret,
+      refresh_token: client.credentials.refresh_token
+    })
+    await fs.writeFile(TOKEN_PATH, payload)
+  }
+
+  async authorize (): Promise<JSONClient | OAuth2Client> {
+    const savedClient = await this.loadSavedCredentialsIfExist()
+    if (savedClient !== null) {
+      return savedClient
+    }
+    const client = await authenticate({
+      scopes: SCOPES,
+      keyfilePath: CREDENTIALS_PATH
+    })
+    await this.saveCredentials(client)
+    return client
+  }
+}
+
+export default class Google extends Auth {
   sheets: sheets_v4.Sheets | undefined
   script: script_v1.Script | undefined
 
-  async authorize (client: Client): Promise<OAuth2Client> {
-    return await new Promise((resolve, reject) => {
-      const oauth2client = new google.auth.OAuth2(
-        client.env.GOOGLE_CLIENT_ID,
-        client.env.GOOGLE_SECRET_CLIENT_ID,
-        client.env.GOOGLE_REDIRECT_URI
-      )
-
-      const authorizeUrl = oauth2client.generateAuthUrl({
-        access_type: 'offline',
-        scope: 'https://www.googleapis.com/auth/spreadsheets'
-      })
-
-      const server = http
-        .createServer((request, response) => {
-          if ((request.url?.includes('/oauth2callback')) === true) {
-            const queryString = new url.URL(request.url, client.env.GOOGLE_REDIRECT_URI).searchParams
-            const code = queryString.get('code')
-            response.end('Authentication successful! Please return to the console.')
-            if (code !== null) {
-              oauth2client.getToken(code).then(({ tokens }) => {
-                oauth2client.setCredentials(tokens)
-                server.close()
-                resolve(oauth2client)
-              }).catch((error) => reject(error))
-            }
-          }
-        })
-        .listen(3000, () => {
-          console.info(`Go at this URL to authenticate: ${authorizeUrl}`)
-        })
-    })
-  }
-
-  async login (client: Client): Promise<{ sheets: sheets_v4.Sheets, script: script_v1.Script }> {
+  async login (): Promise<{ sheets: sheets_v4.Sheets, script: script_v1.Script }> {
     if (this.sheets === undefined || this.script === undefined) {
-      const oauth2client = await this.authorize(client)
+      const oauth2client = await this.authorize()
       this.sheets = google.sheets({
         version: 'v4',
         auth: oauth2client
@@ -61,7 +77,7 @@ export default class Google {
   }
 
   async shiftSpreadsheetValues (client: Client, sheetId: number, [startRowIndex, endRowIndex]: [number, number], [startColumnIndex, endColumnIndex]: [number, number]): Promise<void> {
-    await (await this.login(client)).sheets.spreadsheets.batchUpdate({
+    await (await this.login()).sheets.spreadsheets.batchUpdate({
       spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
       requestBody: {
         requests: [{
@@ -81,14 +97,14 @@ export default class Google {
   }
 
   async callAppsScript (client: Client): Promise<void> {
-    await (await this.login(client)).script.scripts.run({
+    await (await this.login()).script.scripts.run({
       requestBody: { function: 'update' },
       scriptId: client.env.GOOGLE_SCRIPT_ID
     })
   }
 
   async gatherSpreadSheetValue (client: Client, range: string, majorDimension: string): Promise<any[][] | null | undefined> {
-    const response = await (await this.login(client)).sheets.spreadsheets.values.get({
+    const response = await (await this.login()).sheets.spreadsheets.values.get({
       spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,
       range,
       majorDimension,
@@ -98,7 +114,7 @@ export default class Google {
   }
 
   async updateSpreadSheetValue (client: Client, range: string, majorDimension: string, values: string[][], clearRange: boolean): Promise<void> {
-    const { sheets } = await this.login(client)
+    const { sheets } = await this.login()
     if (clearRange) {
       await sheets.spreadsheets.values.clear({
         spreadsheetId: client.env.GOOGLE_SPREADSHEET_ID,

@@ -3,6 +3,7 @@ import slowFs from 'node:fs'
 import path from 'node:path'
 import { Client, Collection } from 'discord.js'
 import { Guild, Item, Member, Role } from './types.js'
+import { fetch } from 'undici'
 
 export default class DiscordDungeonCache {
   private _guild: Guild | undefined
@@ -72,8 +73,10 @@ export default class DiscordDungeonCache {
     const response = await fetch(`https://api.discorddungeons.me/v3/guild/${client.env.DISCORD_DUNGEONS_GUILD_ID}`, {
       headers: { Authorization: client.env.DISCORD_DUNGEONS_API_KEY }
     })
-    const json = await response.json()
-    this.guild = json.data
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    this.guild = await response.json() as Guild
     await fs.writeFile(path.join('cache', 'guild.json'), JSON.stringify(this.guild))
   }
 
@@ -84,8 +87,10 @@ export default class DiscordDungeonCache {
     const response = await fetch(`https://api.discorddungeons.me/v3/bulk/user/${this.guild.members.join(',')}`, {
       headers: { Authorization: client.env.DISCORD_DUNGEONS_API_KEY }
     })
-    const json = await response.json()
-    const members: Member[] = json.data
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    const members = await response.json() as Member[]
     const memberCollection = new Collection<string, Member>()
     for (const member of members) {
       memberCollection.set(member.name, member)
@@ -99,8 +104,10 @@ export default class DiscordDungeonCache {
     const response = await fetch('https://api.discorddungeons.me/v3/all/items', {
       headers: { Authorization: client.env.DISCORD_DUNGEONS_API_KEY }
     })
-    const json = await response.json()
-    this.items = json.data
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    this.items = await response.json() as Item[]
     await fs.writeFile(path.join('cache', 'items.json'), JSON.stringify(this.items))
   }
 
@@ -136,8 +143,10 @@ export default class DiscordDungeonCache {
       const response = await fetch(`https://api.discorddungeons.me/v3/bulk/user/${unknownDiscordMembers.join(',')}`, {
         headers: { Authorization: client.env.DISCORD_DUNGEONS_API_KEY }
       })
-      const json = await response.json()
-      const unknownDiscordMemberList: Member[] = json.data
+      if (!response.ok) {
+        throw new Error(response.statusText)
+      }
+      const unknownDiscordMemberList: Member[] = await response.json() as Member[]
       for (const unknownDiscordMember of unknownDiscordMemberList) {
         const member = client.guilds.resolve(client.env.DISCORD_GUILD_ID)?.members.resolve(unknownDiscordMember.id)
         if (member === undefined || member === null) continue

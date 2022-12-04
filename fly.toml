@@ -22,3 +22,7 @@ app = "novabot"
 
 [build]
   build-target = "runner"
+
+[mounts]
+  source = "credentials"
+  destination = "/credentials"

@@ -40,7 +40,7 @@ export default class Sheet extends Google {
       donatorIds.push(donation[0])
       donatorNamesAndDonatedAmount.push([donation[1].name, donation[1].donated.toString()])
     }
-    await this.updateSpreadSheetValue(client, 'Gold Sheet!D6:D', 'ROWS', [donatorIds], true)
+    await this.updateSpreadSheetValue(client, 'Gold Sheet!D6:D', 'COLUMNS', [donatorIds], true)
     await this.updateSpreadSheetValue(client, 'Gold Sheet!A6:B', 'ROWS', donatorNamesAndDonatedAmount, true)
   }
 

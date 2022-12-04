@@ -13,15 +13,14 @@ import DiscordDungeonCache from './cache.js'
 import Sheet from './sheets.js'
 import { fileURLToPath } from 'url'
 import { updateAll } from './utils.js'
+import { constants } from 'fs'
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const WEBSITE_URL = process.env.WEBSITE_URL
 const GOOGLE_SPREADSHEET_URL = process.env.GOOGLE_SPREADSHEET_URL
 const GOOGLE_SCRIPT_ID = process.env.GOOGLE_SCRIPT_ID
 const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-const GOOGLE_SECRET_CLIENT_ID = process.env.GOOGLE_SECRET_CLIENT_ID
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI
+const GOOGLE_CREDENTIALS = process.env.GOOGLE_CREDENTIALS
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID
 const DISCORD_MISSING_MEMBERS_CHANNEL_ID = process.env.DISCORD_MISSING_MEMBERS_CHANNEL_ID
 const DISCORD_REQUEST_CHANNEL_ID = process.env.DISCORD_REQUEST_CHANNEL_ID
@@ -41,9 +40,7 @@ const env = {
   GOOGLE_SPREADSHEET_URL,
   GOOGLE_SCRIPT_ID,
   GOOGLE_SPREADSHEET_ID,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_SECRET_CLIENT_ID,
-  GOOGLE_REDIRECT_URI,
+  GOOGLE_CREDENTIALS,
   DISCORD_GUILD_ID,
   DISCORD_MISSING_MEMBERS_CHANNEL_ID,
   DISCORD_REQUEST_CHANNEL_ID,
@@ -65,6 +62,9 @@ for (const [name, value] of Object.entries(env)) {
 }
 
 const environment = env as Environment
+const DEPLOYED = await fs.access('/credentials', constants.F_OK).then(() => true).catch(() => false)
+const CREDENTIALS_PATH = path.join(DEPLOYED ? '/credentials' : process.cwd(), 'credentials.json')
+await fs.writeFile(CREDENTIALS_PATH, environment.GOOGLE_CREDENTIALS)
 
 const internalCommands: Collection<string, InternalCommand> = new Collection()
 const externalCommands: Collection<string, ExternalCommand> = new Collection()
