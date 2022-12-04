@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('updateItems')
+    .setName('updateitems')
     .setDescription('Updates the list of all DRPG items.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   execute: async (interaction: ChatInputCommandInteraction) => {

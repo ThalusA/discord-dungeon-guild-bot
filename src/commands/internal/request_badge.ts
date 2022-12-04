@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('requestBadge')
+    .setName('requestbadge')
     .setDescription('Request the Nova badge'),
   execute: async (interaction: ChatInputCommandInteraction) => {
     const member = interaction.client.cache.guildMembers.get(interaction.user.username)

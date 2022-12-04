@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('callGoogleScript')
+    .setName('callgooglescript')
     .setDescription('Forces the Google Script to start.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   execute: async (interaction: ChatInputCommandInteraction) => {

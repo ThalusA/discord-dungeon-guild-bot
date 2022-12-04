@@ -12,7 +12,7 @@ export async function updateAll (client: Client): Promise<void> {
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('updateAll')
+    .setName('updateall')
     .setDescription('Does every update function at once.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   execute: async (interaction: ChatInputCommandInteraction) => {

@@ -6,7 +6,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('requestItem')
+    .setName('requestitem')
     .addStringOption(option => option.setName('name').setRequired(true))
     .addIntegerOption(option => option.setName('amount').setRequired(true))
     .setDescription('Request a specific amount of a specific item from the bank.'),

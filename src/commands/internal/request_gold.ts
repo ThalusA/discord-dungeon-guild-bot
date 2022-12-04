@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('requestGold')
+    .setName('requestgold')
     .addIntegerOption(option => option.setName('amount').setRequired(true))
     .setDescription('Request specified amount of gold from the bank.'),
   execute: async (interaction: ChatInputCommandInteraction) => {

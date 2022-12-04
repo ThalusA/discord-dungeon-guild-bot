@@ -3,8 +3,8 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('stop')
-    .setDescription('Stops the bot.')
+    .setName('exec')
+    .setDescription('Execute the provided command.')
     .addStringOption(option => option
       .setName('command')
       .setDescription('What command to execute.')

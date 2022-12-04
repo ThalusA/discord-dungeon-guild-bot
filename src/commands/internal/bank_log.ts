@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('bankLog')
+    .setName('banklog')
     .setDescription('Show the bank spreadsheet link.'),
   execute: async (interaction: ChatInputCommandInteraction) => {
     const embed = new EmbedBuilder().setColor('#7F23FF').setTitle('Bank Log Links').setFields([{

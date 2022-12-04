@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('requestList')
+    .setName('requestlist')
     .setDescription('List all pending requests from the bank for your account.'),
   execute: async (interaction: ChatInputCommandInteraction) => {
     if (interaction.user.id in interaction.client.requests) {

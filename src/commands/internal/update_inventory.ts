@@ -3,7 +3,7 @@ import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
-    .setName('updateInventory')
+    .setName('updateinventory')
     .setDescription("Updates the guild's inventory.")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   execute: async (interaction: ChatInputCommandInteraction) => {
