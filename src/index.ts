@@ -76,11 +76,11 @@ const internalCommandFiles = (await fs.readdir(internalCommandsPath)).filter(fil
 const externalCommandFiles = (await fs.readdir(externalCommandsPath)).filter(file => file.endsWith('.js'))
 
 for (const file of internalCommandFiles) {
-  const command: InternalCommand = await import(path.join(internalCommandsPath, file))
+  const command: InternalCommand = (await import(path.join(internalCommandsPath, file))).default
   internalCommands.set(command.data.name, command)
 }
 for (const file of externalCommandFiles) {
-  const command: ExternalCommand = await import(path.join(externalCommandsPath, file))
+  const command: ExternalCommand = (await import(path.join(externalCommandsPath, file))).default
   externalCommands.set(command.keyword, command)
 }
 
