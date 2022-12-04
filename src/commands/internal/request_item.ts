@@ -2,7 +2,7 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder
 } from 'discord.js'
-import type { InternalCommand } from '../../types'
+import type { InternalCommand } from '../../types.js'
 
 const command: InternalCommand = {
   data: new SlashCommandBuilder()

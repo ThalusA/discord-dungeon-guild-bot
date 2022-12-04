@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, PermissionFlagsBits, Client } from 'discord.js'
-import type { InternalCommand } from '../../types'
+import type { InternalCommand } from '../../types.js'
 
 export async function updateAll (client: Client): Promise<void> {
   await client.sheet.updateGuildInfo(client)

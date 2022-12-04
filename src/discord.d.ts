@@ -1,7 +1,7 @@
-import DiscordDungeonCache from './cache'
-import Sheet from './sheets'
+import DiscordDungeonCache from './cache.js'
+import Sheet from './sheets.js'
 import { Collection } from 'discord.js'
-import { Environment } from './types'
+import { Environment } from './types.js'
 
 declare module 'discord.js' {
   export interface Client {

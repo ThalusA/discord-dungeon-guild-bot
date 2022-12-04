@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import slowFs from 'node:fs'
 import path from 'node:path'
 import { Client, Collection } from 'discord.js'
-import { Guild, Item, Member, Role } from './types'
+import { Guild, Item, Member, Role } from './types.js'
 
 export default class DiscordDungeonCache {
   private _guild: Guild | undefined

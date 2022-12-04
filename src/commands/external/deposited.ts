@@ -1,7 +1,7 @@
-import type { ExternalCommand } from '../../types'
+import type { ExternalCommand } from '../../types.js'
 import { Collection } from 'discord.js'
-import { finishRequest, parseDiscordDungeonMessage } from '../../utils'
-import { InfoType } from '../../types'
+import { finishRequest, parseDiscordDungeonMessage } from '../../utils.js'
+import { InfoType } from '../../types.js'
 
 const command: ExternalCommand = {
   keyword: 'deposited',

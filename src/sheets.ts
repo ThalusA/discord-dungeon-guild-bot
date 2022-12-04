@@ -1,6 +1,6 @@
-import Google from './google'
+import Google from './google.js'
 import { ChannelType, Client, User } from 'discord.js'
-import type { Donations, Member } from './types'
+import type { Donations, Member } from './types.js'
 
 export default class Sheet extends Google {
   async updateInventory (client: Client): Promise<void> {

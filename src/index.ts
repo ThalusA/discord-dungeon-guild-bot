@@ -6,12 +6,12 @@ import {
   GatewayIntentBits,
   Events
 } from 'discord.js'
-import type { InternalCommand, ExternalCommand, Environment } from './types'
+import type { InternalCommand, ExternalCommand, Environment } from './types.js'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import DiscordDungeonCache from './cache'
-import Sheet from './sheets'
-import { updateAll } from './commands/internal/update_all'
+import DiscordDungeonCache from './cache.js'
+import Sheet from './sheets.js'
+import { updateAll } from './commands/internal/update_all.js'
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN
 const WEBSITE_URL = process.env.WEBSITE_URL

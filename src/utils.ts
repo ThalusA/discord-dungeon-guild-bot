@@ -1,5 +1,5 @@
 import { Client, Collection, Message } from 'discord.js'
-import { Member, InfoType } from './types'
+import { Member, InfoType } from './types.js'
 
 type MapLF<T extends InfoType> =
   T extends InfoType.User ? Member :

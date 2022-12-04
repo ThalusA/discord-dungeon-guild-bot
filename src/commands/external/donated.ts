@@ -1,6 +1,6 @@
-import type { ExternalCommand } from '../../types'
-import { InfoType } from '../../types'
-import { finishRequest, parseDiscordDungeonMessage } from '../../utils'
+import type { ExternalCommand } from '../../types.js'
+import { InfoType } from '../../types.js'
+import { finishRequest, parseDiscordDungeonMessage } from '../../utils.js'
 
 const command: ExternalCommand = {
   keyword: 'donated',
