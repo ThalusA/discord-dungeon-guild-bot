@@ -66,7 +66,7 @@ await fs.writeFile('credentials.json', environment.GOOGLE_CREDENTIALS)
 const internalCommands: Collection<string, InternalCommand> = new Collection()
 const externalCommands: Collection<string, ExternalCommand> = new Collection()
 
-const commandsPath = path.join(__dirname, 'commands')
+const commandsPath = 'commands'
 const internalCommandsPath = path.join(commandsPath, 'internal')
 const externalCommandsPath = path.join(commandsPath, 'external')
 
