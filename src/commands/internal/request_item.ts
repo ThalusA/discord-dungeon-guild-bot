@@ -7,8 +7,8 @@ import type { InternalCommand } from '../../types.js'
 const command: InternalCommand = {
   data: new SlashCommandBuilder()
     .setName('requestitem')
-    .addStringOption(option => option.setName('name').setRequired(true))
-    .addIntegerOption(option => option.setName('amount').setRequired(true))
+    .addStringOption(option => option.setName('name').setDescription('The name of the item').setRequired(true))
+    .addIntegerOption(option => option.setName('amount').setDescription('The amount you want to request').setRequired(true))
     .setDescription('Request a specific amount of a specific item from the bank.'),
   execute: async (interaction: ChatInputCommandInteraction) => {
     const name = interaction.options.getString('name')
