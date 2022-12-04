@@ -70,7 +70,7 @@ export interface Environment {
   GOOGLE_SPREADSHEET_URL: string
   GOOGLE_SCRIPT_ID: string
   GOOGLE_SPREADSHEET_ID: string
-  GOOGLE_CREDENTIALS: string
+  GOOGLE_API_KEY: string
   DISCORD_GUILD_ID: string
   DISCORD_MISSING_MEMBERS_CHANNEL_ID: string
   DISCORD_REQUEST_CHANNEL_ID: string

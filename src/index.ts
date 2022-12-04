@@ -19,7 +19,7 @@ const WEBSITE_URL = process.env.WEBSITE_URL
 const GOOGLE_SPREADSHEET_URL = process.env.GOOGLE_SPREADSHEET_URL
 const GOOGLE_SCRIPT_ID = process.env.GOOGLE_SCRIPT_ID
 const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID
-const GOOGLE_CREDENTIALS = process.env.GOOGLE_CREDENTIALS
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID
 const DISCORD_MISSING_MEMBERS_CHANNEL_ID = process.env.DISCORD_MISSING_MEMBERS_CHANNEL_ID
 const DISCORD_REQUEST_CHANNEL_ID = process.env.DISCORD_REQUEST_CHANNEL_ID
@@ -39,7 +39,7 @@ const env = {
   GOOGLE_SPREADSHEET_URL,
   GOOGLE_SCRIPT_ID,
   GOOGLE_SPREADSHEET_ID,
-  GOOGLE_CREDENTIALS,
+  GOOGLE_API_KEY,
   DISCORD_GUILD_ID,
   DISCORD_MISSING_MEMBERS_CHANNEL_ID,
   DISCORD_REQUEST_CHANNEL_ID,
@@ -62,13 +62,12 @@ for (const [name, value] of Object.entries(env)) {
 
 const environment = env as Environment
 
-await fs.writeFile('credentials.json', environment.GOOGLE_CREDENTIALS)
-
 const internalCommands: Collection<string, InternalCommand> = new Collection()
 const externalCommands: Collection<string, ExternalCommand> = new Collection()
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const commandsPath = path.join(dirname, 'commands')
+
 const internalCommandsPath = path.join(commandsPath, 'internal')
 const externalCommandsPath = path.join(commandsPath, 'external')
 
